@@ -596,9 +596,12 @@ import {
       const uname = String(username || '').trim().toLowerCase();
       if (!uname || !password) return false;
       try {
-        const mapSnap = await getDoc(doc(db, 'usernames', uname));
-        if (!mapSnap.exists()) return false;
-        const { email } = mapSnap.data();
+      console.warn('EDU_DEBUG_UNAME', JSON.stringify(uname));
+           const mapSnap = await getDoc(doc(db, 'usernames', uname));
+           console.warn('EDU_DEBUG_EXISTS', mapSnap.exists());
+           if (!mapSnap.exists()) return false;
+           const { email } = mapSnap.data();
+           console.warn('EDU_DEBUG_EMAIL', JSON.stringify(email));
         sessionStorage.removeItem('edu_acc_login_at_pending');
         const cred = await signInWithEmailAndPassword(auth, email, password);
         sessionStorage.setItem('edu_acc_login_at_' + cred.user.uid, String(Date.now()));
