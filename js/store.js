@@ -13,7 +13,7 @@ import {
   sendPasswordResetEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider,
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {
-  getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc,
+  initializeFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc,
   onSnapshot, runTransaction, writeBatch,
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
@@ -33,7 +33,11 @@ import {
 
   const fbApp = initializeApp(global.FIREBASE_CONFIG || {});
   const auth = getAuth(fbApp);
-  const db = getFirestore(fbApp);
+  // نستخدم initializeFirestore مع experimentalAutoDetectLongPolling بدل getFirestore الافتراضية:
+  // بعض الشبكات (برامج حماية، بروكسي شركات، بعض مزوّدي الإنترنت) تحجب اتصال Firestore الفوري (WebChannel)
+  // فيظهر خطأ "client is offline" رغم وجود إنترنت فعليًا — هذا الخيار يجعل Firestore يكتشف تلقائيًا
+  // ويستخدم طريقة اتصال بديلة (long-polling) تعمل عبر أي شبكة تقريبًا.
+  const db = initializeFirestore(fbApp, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
   setPersistence(auth, browserSessionPersistence).catch(() => {});
 
   // ---------- دليل الحسابات المدرسي (ثابت) ----------
