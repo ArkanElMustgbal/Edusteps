@@ -604,10 +604,12 @@ import {
         sessionStorage.setItem('edu_acc_login_at_' + cred.user.uid, String(Date.now()));
         // ننتظر وصول مستند المستخدم عبر onAuthStateChanged قبل اعتبار الدخول ناجحًا فعليًا
         for (let i = 0; i < 50 && !currentSession; i++) { await new Promise((r) => setTimeout(r, 100)); }
-        return !!currentSession;
-      } catch (e) {
-        return false;
-      }
+       return !!currentSession;
+         } catch (e) {
+           console.error('EDU_LOGIN_ERROR', e && e.code, e && e.message);
+           return false;
+         }
+       },
     },
 
     getSession() {
