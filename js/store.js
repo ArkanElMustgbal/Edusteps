@@ -33,11 +33,13 @@ import {
 
   const fbApp = initializeApp(global.FIREBASE_CONFIG || {});
   const auth = getAuth(fbApp);
-  // نستخدم initializeFirestore مع experimentalAutoDetectLongPolling بدل getFirestore الافتراضية:
-  // بعض الشبكات (برامج حماية، بروكسي شركات، بعض مزوّدي الإنترنت) تحجب اتصال Firestore الفوري (WebChannel)
-  // فيظهر خطأ "client is offline" رغم وجود إنترنت فعليًا — هذا الخيار يجعل Firestore يكتشف تلقائيًا
-  // ويستخدم طريقة اتصال بديلة (long-polling) تعمل عبر أي شبكة تقريبًا.
-  const db = initializeFirestore(fbApp, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
+  // مهم: قاعدة بيانات Firestore الخاصة بهذا المشروع أُنشئت بمعرّف صريح اسمه "default"
+  // (وليس المعرّف الخاص المحجوز تلقائيًا الذي تتصل به Firestore افتراضيًا) — لذلك يجب تمريره صراحةً هنا
+  // كمعامل رابع، وإلا فإن أي اتصال سيفشل دائمًا (يظهر كخطأ "client is offline" مضلِّل مهما كانت الشبكة).
+  // كذلك نستخدم experimentalAutoDetectLongPolling بدل getFirestore الافتراضية: بعض الشبكات
+  // (برامج حماية، بروكسي شركات) تحجب اتصال Firestore الفوري (WebChannel)، وهذا الخيار يجعل Firestore
+  // يكتشف تلقائيًا ويستخدم طريقة اتصال بديلة (long-polling) تعمل عبر أي شبكة تقريبًا.
+  const db = initializeFirestore(fbApp, { experimentalAutoDetectLongPolling: true, useFetchStreams: false }, 'default');
   setPersistence(auth, browserSessionPersistence).catch(() => {});
 
   // ---------- دليل الحسابات المدرسي (ثابت) ----------
