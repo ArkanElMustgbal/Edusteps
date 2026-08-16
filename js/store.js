@@ -596,23 +596,22 @@ import {
       const uname = String(username || '').trim().toLowerCase();
       if (!uname || !password) return false;
       try {
-      console.warn('EDU_DEBUG_UNAME', JSON.stringify(uname));
-           const mapSnap = await getDoc(doc(db, 'usernames', uname));
-           console.warn('EDU_DEBUG_EXISTS', mapSnap.exists());
-           if (!mapSnap.exists()) return false;
-           const { email } = mapSnap.data();
-           console.warn('EDU_DEBUG_EMAIL', JSON.stringify(email));
+        console.warn('EDU_DEBUG_UNAME', JSON.stringify(uname));
+        const mapSnap = await getDoc(doc(db, 'usernames', uname));
+        console.warn('EDU_DEBUG_EXISTS', mapSnap.exists());
+        if (!mapSnap.exists()) return false;
+        const { email } = mapSnap.data();
+        console.warn('EDU_DEBUG_EMAIL', JSON.stringify(email));
         sessionStorage.removeItem('edu_acc_login_at_pending');
         const cred = await signInWithEmailAndPassword(auth, email, password);
         sessionStorage.setItem('edu_acc_login_at_' + cred.user.uid, String(Date.now()));
         // ننتظر وصول مستند المستخدم عبر onAuthStateChanged قبل اعتبار الدخول ناجحًا فعليًا
         for (let i = 0; i < 50 && !currentSession; i++) { await new Promise((r) => setTimeout(r, 100)); }
-       return !!currentSession;
-         } catch (e) {
-           console.error('EDU_LOGIN_ERROR', e && e.code, e && e.message);
-           return false;
-         }
-       },
+        return !!currentSession;
+      } catch (e) {
+        console.error('EDU_LOGIN_ERROR', e && e.code, e && e.message);
+        return false;
+      }
     },
 
     getSession() {
