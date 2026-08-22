@@ -15,6 +15,5 @@ window.FIREBASE_CONFIG = {
   projectId: "edusteps2-d4093",
   storageBucket: "edusteps2-d4093.firebasestorage.app",
   messagingSenderId: "979878374470",
-  appId: "1:979878374470:web:a962f93a9e912fa4976e47"
+  appId: "1:979878374470:web:a962f93a9e912fa4976e47",
 };
-
