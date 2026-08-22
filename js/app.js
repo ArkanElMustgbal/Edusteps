@@ -5,16 +5,9 @@
   function $all(sel) { return document.querySelectorAll(sel); }
   function todayISO() { return new Date().toISOString().slice(0, 10); }
   function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
-  function isEnglishUI() { return !!(window.AccI18n && window.AccI18n.getLang() === 'en'); }
-  function fmtMoney(n) {
-    if (isEnglishUI()) return (Number(n) || 0).toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' SAR';
-    return (Number(n) || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 }) + ' ر.س';
-  }
+  function fmtMoney(n) { return (Number(n) || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 }) + ' ر.س'; }
   function fmtDate(iso) {
-    try {
-      if (isEnglishUI()) return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-      return new Date(iso).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' });
-    }
+    try { return new Date(iso).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' }); }
     catch (e) { return iso; }
   }
   function escapeHtml(str) {
@@ -44,6 +37,8 @@
   function showApp() { $('#loginScreen').classList.add('hidden'); $('#appShell').classList.remove('hidden'); }
 
   const ROLE_LABEL = { admin: 'مسؤول', staff: 'محاسب' };
+  // ---------- الصلاحيات: الحسابات غير الإدارية (محاسب) لا ترى إلا هذه الأقسام الثلاثة ----------
+  const STAFF_ALLOWED_TABS = ['students', 'receipts', 'payments'];
   let currentRole = null;
 
   function applySessionUI(session) {
@@ -53,8 +48,14 @@
     $('#userAvatar').textContent = displayName.slice(0, 1).toUpperCase();
     const roleBadge = $('#userRoleBadge');
     if (roleBadge) roleBadge.textContent = ROLE_LABEL[session.role] || '';
-    const usersNav = $('#usersNavBtn');
-    if (usersNav) usersNav.classList.toggle('hidden', session.role !== 'admin');
+    const isAdmin = session.role === 'admin';
+    $all('.tab-btn').forEach((btn) => {
+      if (STAFF_ALLOWED_TABS.includes(btn.dataset.tab)) return; // ظاهر دائمًا لكل الحسابات
+      btn.classList.toggle('hidden', !isAdmin);
+    });
+    // إخفاء إجمالي ما تم تحصيله من الطلاب عن الحسابات غير الإدارية
+    const revenueKpi = $('#studentsRevenueKpiBox');
+    if (revenueKpi) revenueKpi.classList.toggle('hidden', !isAdmin);
   }
 
   async function checkSession() {
@@ -119,7 +120,7 @@
   };
 
   function switchTab(tab) {
-    if (tab === 'users' && currentRole !== 'admin') tab = 'overview';
+    if (currentRole !== 'admin' && !STAFF_ALLOWED_TABS.includes(tab)) tab = 'students';
     state.currentTab = tab;
     $all('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
     $all('.tab-panel').forEach((p) => p.classList.add('hidden'));
@@ -1273,8 +1274,6 @@
 
   // ---------- الطباعة (إيصال سند / بطاقة طالب) — عبر نافذة طباعة المتصفح، يمكن حفظها كـ PDF ----------
   const SCHOOL_PRINT_NAME = 'رياض ومدارس إديو ستبس العالمية';
-  const SCHOOL_PRINT_COUNTRY = 'المملكة العربية السعودية';
-
   function printHTML(html) {
     $('#printArea').innerHTML = html;
     setTimeout(() => window.print(), 60);
@@ -1285,7 +1284,7 @@
       <div class="pr-head">
         <img class="pr-logo" src="../img/logo.jpg" alt="${escapeHtml(SCHOOL_PRINT_NAME)}" />
         <b>${escapeHtml(SCHOOL_PRINT_NAME)}</b>
-        <span>${escapeHtml(subtitle || SCHOOL_PRINT_COUNTRY)}</span>
+        ${subtitle ? `<span>${escapeHtml(subtitle)}</span>` : ''}
       </div>`;
   }
 
@@ -1506,9 +1505,9 @@
 
   // ---------- التهيئة ----------
   function initApp() {
-    if (appInitialized) { loadOverview(); return; }
+    if (appInitialized) { switchTab(state.currentTab || 'overview'); return; }
     appInitialized = true;
-    switchTab('overview');
+    switchTab(currentRole === 'admin' ? 'overview' : 'students');
   }
 
   // ---------- تحديث حي: يُعاد رسم التبويب الحالي تلقائيًا فور وصول أي تغيير من Firestore (من نفس الجهاز أو من جهاز آخر) ----------
@@ -1518,15 +1517,6 @@
     'income-statement': loadIncomeStatement, accounts: loadAccountsTab, users: loadUsersTab,
   };
   document.addEventListener('acc:data-changed', () => {
-    if (!appInitialized) return;
-    if ($('#appShell').classList.contains('hidden')) return;
-    const loader = state.currentTab && TAB_LOADERS[state.currentTab];
-    if (loader) loader();
-  });
-
-  // تبديل اللغة (عربي/إنجليزي): يعيد رسم التبويب الحالي فورًا حتى تُنسَّق الأرقام والتواريخ
-  // بالصيغة الصحيحة للغة الجديدة (fmtMoney/fmtDate) بدل انتظار طبقة الترجمة النصية وحدها
-  document.addEventListener('lang:changed', () => {
     if (!appInitialized) return;
     if ($('#appShell').classList.contains('hidden')) return;
     const loader = state.currentTab && TAB_LOADERS[state.currentTab];
