@@ -10,10 +10,10 @@
 // ------------------------------------------------------------------
 
 window.FIREBASE_CONFIG = {
-  apiKey: "ضع_القيمة_هنا",
-  authDomain: "ضع_القيمة_هنا",
-  projectId: "ضع_القيمة_هنا",
-  storageBucket: "ضع_القيمة_هنا",
-  messagingSenderId: "ضع_القيمة_هنا",
-  appId: "ضع_القيمة_هنا",
+  apiKey: "AIzaSyCnZtZEKJXHLQllyY-YX1lBENIfCNT44_M",
+  authDomain: "edusteps-56673.firebaseapp.com",
+  projectId: "edusteps-56673",
+  storageBucket: "edusteps-56673.firebasestorage.app",
+  messagingSenderId: "182371593703",
+  appId: "1:182371593703:web:4390d7b3d77bc3d3566142"
 };
